@@ -9,7 +9,7 @@ import org.hibernate.service.ServiceRegistry;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.Statement;
+import java.sql.SQLException;
 import java.util.Properties;
 
 public class Util {
@@ -19,7 +19,6 @@ public class Util {
         if (sessionFactory == null) {
             try {
                 Configuration configuration = new Configuration();
-
                 // Hibernate settings equivalent to hibernate.cfg.xml's properties
                 Properties settings = new Properties();
                 settings.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
@@ -44,32 +43,25 @@ public class Util {
                 sessionFactory = configuration.buildSessionFactory(serviceRegistry);
             } catch (Exception e) {
                 e.printStackTrace();
+                System.out.println("Connection failed...");
             }
         }
         return sessionFactory;
     }
 
-    public static void getConnection() {
-        try{
-            String url = "jdbc:mysql://localhost/users";
-            String username = "root";
-            String password = "12345678";
-            Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
-            try (Connection conn = DriverManager.getConnection(url, username, password)){
-//                conn.setAutoCommit(false);
-                System.out.println("Connection to Store DB successful!");
-                Statement statement = conn.createStatement();
-            }
-        }
-        catch(Exception ex){
+    public static Connection getConnection() {
+            Connection connection = null;
+
+//            Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
+        try {
+            connection = DriverManager.getConnection("jdbc:mysql://localhost/users", "root", "12345678");
+            System.out.println("Connection to Store DB successful!");
+        } catch (SQLException e) {
+            e.printStackTrace();
             System.out.println("Connection failed...");
-
-            System.out.println(ex);
-        }
-
-
+        } return connection;
     }
 
 
-    // реализуйте настройку соеденения с БД
+
 }
