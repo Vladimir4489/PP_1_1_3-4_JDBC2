@@ -4,14 +4,13 @@ import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
 
-import static jm.task.core.jdbc.util.Util.getSessionFactory;
-
 public class UserDaoHibernateImpl implements UserDao {
-    SessionFactory factory = Util.getSessionFactory();
+    private SessionFactory factory = Util.getSessionFactory();
     public UserDaoHibernateImpl() {
 
     }
@@ -46,47 +45,68 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
+        Transaction transaction = null;
         try (Session session = factory.getCurrentSession()) {
-            session.beginTransaction();
+            transaction = session.beginTransaction();
             session.save(new User(name, lastName, age));
-            session.getTransaction().commit();
+            transaction.commit();
         } catch (Exception e) {
             e.printStackTrace();
+            if (transaction != null) {
+                transaction.rollback();
+            }
         }
 
     }
 
     @Override
     public void removeUserById(long id) {
+        Transaction transaction = null;
         try (Session session = factory.getCurrentSession()) {
-            session.beginTransaction();
+            transaction = session.beginTransaction();
             User user = session.load(User.class, id);
             if (user != null) {
                 session.delete(user);
             }
-            session.getTransaction().commit();
+            transaction.commit();
         } catch (Exception e) {
             e.printStackTrace();
+            if (transaction != null) {
+                transaction.rollback();
+            }
         }
     }
 
     @Override
     public List<User> getAllUsers() {
-
-        try (Session session = getSessionFactory().openSession()) {
-            return session.createQuery("from User", User.class).list();
+        Transaction transaction = null;
+        List<User> list = null;
+        try (Session session = factory.getCurrentSession()) {
+            transaction = session.beginTransaction();
+            list = session.createQuery("from User", User.class).list();
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (transaction != null) {
+                transaction.rollback();
+            }
         }
+        return list;
     }
 
     @Override
     public void cleanUsersTable() {
+        Transaction transaction = null;
         try (Session session = factory.getCurrentSession()) {
-            session.beginTransaction();
+            transaction = session.beginTransaction();
             Query query = session.createSQLQuery("TRUNCATE TABLE users").addEntity(User.class);
             query.executeUpdate();
-            session.getTransaction().commit();
+            transaction.commit();
         } catch (Exception e) {
             e.printStackTrace();
+            if (transaction != null) {
+                transaction.rollback();
+            }
         }
     }
 }

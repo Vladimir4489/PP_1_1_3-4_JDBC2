@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDaoJDBCImpl implements UserDao {
-    Connection connection = Util.getConnection();
+    private Connection connection = Util.getConnection();
 
     public UserDaoJDBCImpl() {
 
@@ -26,7 +26,6 @@ public class UserDaoJDBCImpl implements UserDao {
             e.printStackTrace();
             if (connection != null) {
                 try {
-                    connection.rollback();
                     connection.setAutoCommit(true);
                 } catch (SQLException ignore) {
 
@@ -57,7 +56,6 @@ public class UserDaoJDBCImpl implements UserDao {
             e.printStackTrace();
             if (connection != null) {
                 try {
-                    connection.rollback();
                     connection.setAutoCommit(true);
                 } catch (SQLException ignore) {
 
@@ -149,11 +147,7 @@ public class UserDaoJDBCImpl implements UserDao {
             statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * FROM users");
             while(resultSet.next()){
-                int id = resultSet.getInt(1);
-                String Name = resultSet.getString(2);
-                String LastName = resultSet.getString(3);
-                int Age = resultSet.getInt(4);
-                list.add(new User(Name, LastName, (byte)Age));
+                list.add(new User(resultSet.getString(2), resultSet.getString(3), (byte)resultSet.getInt(4)));
             }
             connection.commit();
         } catch (SQLException e) {
